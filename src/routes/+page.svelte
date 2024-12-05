@@ -6,37 +6,62 @@
 		requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
 	};
 
+	let canvas: HTMLCanvasElement;
+	let ctx: CanvasRenderingContext2D;
+	let lastX: number;
+	let lastY: number;
+	let paintedPercentage = 0;
+
 	let ball: { x: number; y: number } = { x: 50, y: 50 };
+	let paintPosition: { x: number; y: number } = { x: 50, y: 50 };
 	let velocity = { x: 0, y: 0 };
 	const friction = 0.98;
 	const sensitivity = 0.5;
-	const BALL_RADIUS = 20; // ボールの半径（px）
-	let ballRadiusPercent = 5; // 初期値
-
-	// ボールの半径のパーセント値を計算
-	const calculateBallRadiusPercent = () => {
-		if (browser) {
-			const vmin = Math.min(window.innerWidth, window.innerHeight);
-			const gameAreaSize = vmin * 0.9; // 90vmin
-			ballRadiusPercent = (BALL_RADIUS / gameAreaSize) * 100;
-		}
-	};
+	const BALL_RADIUS = 20;
 
 	let isPermissionGranted = false;
 
-	const requestPermission = async () => {
-		const DeviceOrientationWithPermission =
-			DeviceOrientationEvent as unknown as DeviceOrientationWithPermission;
-		if (typeof DeviceOrientationWithPermission.requestPermission === 'function') {
-			try {
-				const permission = await DeviceOrientationWithPermission.requestPermission();
-				isPermissionGranted = permission === 'granted';
-			} catch (err) {
-				console.error('権限の取得に失敗しました:', err);
-			}
-		} else {
-			isPermissionGranted = true;
+	const initCanvas = () => {
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+		ctx = canvas.getContext('2d')!;
+		ctx.fillStyle = 'black';
+		ctx.strokeStyle = 'black';
+		lastX = (paintPosition.x / 100) * canvas.width;
+		lastY = (paintPosition.y / 100) * canvas.height;
+	};
+
+	const calculatePaintedArea = () => {
+		if (!ctx) return;
+		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const pixels = imageData.data;
+		let paintedPixels = 0;
+		
+		for (let i = 3; i < pixels.length; i += 4) {
+			if (pixels[i] > 0) paintedPixels++;
 		}
+		
+		paintedPercentage = Math.floor((paintedPixels / (canvas.width * canvas.height)) * 100);
+	};
+
+	const drawLine = () => {
+		if (!ctx) return;
+		const currentX = (paintPosition.x / 100) * canvas.width;
+		const currentY = (paintPosition.y / 100) * canvas.height;
+
+		ctx.beginPath();
+		ctx.moveTo(lastX, lastY);
+		ctx.lineTo(currentX, currentY);
+		ctx.lineWidth = BALL_RADIUS * 3 * (canvas.width / 900);
+		ctx.lineCap = 'round';
+		ctx.stroke();
+
+		lastX = currentX;
+		lastY = currentY;
+
+		calculatePaintedArea();
 	};
 
 	const handleOrientation = (event: DeviceOrientationEvent) => {
@@ -51,17 +76,35 @@
 		velocity.x *= friction;
 		velocity.y *= friction;
 
-		ball.x = Math.max(ballRadiusPercent, Math.min(100 - ballRadiusPercent, ball.x + velocity.x));
-		ball.y = Math.max(ballRadiusPercent, Math.min(100 - ballRadiusPercent, ball.y + velocity.y));
+		ball.x = Math.max(0, Math.min(100, ball.x + velocity.x));
+		ball.y = Math.max(0, Math.min(100, ball.y + velocity.y));
+
+		paintPosition.x = ball.x;
+		paintPosition.y = ball.y;
+
+		drawLine();
+	};
+
+	const requestPermission = async () => {
+		if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+			try {
+				const permission = await (DeviceOrientationEvent as any).requestPermission();
+				isPermissionGranted = permission === 'granted';
+			} catch (err) {
+				console.error('権限の取得に失敗しました:', err);
+			}
+		} else {
+			isPermissionGranted = true;
+		}
 	};
 
 	onMount(() => {
 		if (browser) {
-			calculateBallRadiusPercent();
-			window.addEventListener('resize', calculateBallRadiusPercent);
+			window.addEventListener('resize', initCanvas);
 			window.addEventListener('deviceorientation', handleOrientation);
+			initCanvas();
 			return () => {
-				window.removeEventListener('resize', calculateBallRadiusPercent);
+				window.removeEventListener('resize', initCanvas);
 				window.removeEventListener('deviceorientation', handleOrientation);
 			};
 		}
@@ -87,8 +130,10 @@
 	{#if !isPermissionGranted}
 		<button on:click={requestPermission}>ジャイロセンサーへのアクセスを許可する</button>
 	{/if}
+	<div class="progress">塗られた面積: {paintedPercentage}%</div>
 	<div class="game-area">
-		<div class="ball" style="left: {ball.x}%; top: {ball.y}%;"></div>
+		<canvas bind:this={canvas} class="paint-canvas"></canvas>
+		<div class="ball" style="left: {ball.x}%; top: {ball.y}%; transform: translate(-50%, -50%);"></div>
 	</div>
 </div>
 
@@ -100,6 +145,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		gap: 20px;
 	}
 
 	.game-area {
@@ -109,10 +155,29 @@
 		border-radius: 8px;
 		position: relative;
 		background: #f0f0f0;
+		overflow: hidden;
+	}
+
+	.paint-canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	.progress {
+		background: #333;
+		color: white;
+		padding: 8px 16px;
+		border-radius: 20px;
+		font-size: 16px;
+		font-weight: bold;
 	}
 
 	.ball {
-		width: 40px; /* BALL_RADIUSの2倍 */
+		width: 40px;
 		height: 40px;
 		background: #ff4444;
 		border-radius: 50%;
