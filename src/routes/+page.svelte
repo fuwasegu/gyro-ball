@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
-	type DeviceOrientationWithPermission = {
+	type BallSize = 'small' | 'medium' | 'large';
+
+	interface DeviceOrientationEventStatic extends EventTarget {
 		requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
-	};
+	}
 
 	let canvas: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D;
@@ -17,7 +19,17 @@
 	let velocity = { x: 0, y: 0 };
 	const friction = 0.98;
 	const sensitivity = 0.5;
-	const BALL_RADIUS = 20;
+
+	let ballSize: BallSize = 'medium';
+	const BALL_SIZES = {
+		small: { radius: 10, lineWidth: 20 },
+		medium: { radius: 20, lineWidth: 40 },
+		large: { radius: 35, lineWidth: 70 }
+	};
+
+	const changeBallSize = (size: BallSize) => {
+		ballSize = size;
+	};
 
 	let isPermissionGranted = false;
 
@@ -38,11 +50,11 @@
 		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 		const pixels = imageData.data;
 		let paintedPixels = 0;
-		
+
 		for (let i = 3; i < pixels.length; i += 4) {
 			if (pixels[i] > 0) paintedPixels++;
 		}
-		
+
 		paintedPercentage = Math.floor((paintedPixels / (canvas.width * canvas.height)) * 100);
 	};
 
@@ -54,7 +66,7 @@
 		ctx.beginPath();
 		ctx.moveTo(lastX, lastY);
 		ctx.lineTo(currentX, currentY);
-		ctx.lineWidth = BALL_RADIUS * 3 * (canvas.width / 900);
+		ctx.lineWidth = BALL_SIZES[ballSize].lineWidth * (canvas.width / 900);
 		ctx.lineCap = 'round';
 		ctx.stroke();
 
@@ -62,6 +74,20 @@
 		lastY = currentY;
 
 		calculatePaintedArea();
+	};
+
+	const requestPermission = async () => {
+		const orientationEvent = DeviceOrientationEvent as unknown as DeviceOrientationEventStatic;
+		if (typeof orientationEvent.requestPermission === 'function') {
+			try {
+				const permission = await orientationEvent.requestPermission();
+				isPermissionGranted = permission === 'granted';
+			} catch (err) {
+				console.error('権限の取得に失敗しました:', err);
+			}
+		} else {
+			isPermissionGranted = true;
+		}
 	};
 
 	const handleOrientation = (event: DeviceOrientationEvent) => {
@@ -83,19 +109,6 @@
 		paintPosition.y = ball.y;
 
 		drawLine();
-	};
-
-	const requestPermission = async () => {
-		if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-			try {
-				const permission = await (DeviceOrientationEvent as any).requestPermission();
-				isPermissionGranted = permission === 'granted';
-			} catch (err) {
-				console.error('権限の取得に失敗しました:', err);
-			}
-		} else {
-			isPermissionGranted = true;
-		}
 	};
 
 	onMount(() => {
@@ -130,10 +143,44 @@
 	{#if !isPermissionGranted}
 		<button on:click={requestPermission}>ジャイロセンサーへのアクセスを許可する</button>
 	{/if}
-	<div class="progress">塗られた面積: {paintedPercentage}%</div>
+	<div class="controls">
+		<div class="progress">塗られた面積: {paintedPercentage}%</div>
+		<div class="size-controls">
+			<button
+				class:active={ballSize === 'small'}
+				on:click={() => changeBallSize('small')}
+				aria-label="小サイズ"
+			>
+				小
+			</button>
+			<button
+				class:active={ballSize === 'medium'}
+				on:click={() => changeBallSize('medium')}
+				aria-label="中イズ"
+			>
+				中
+			</button>
+			<button
+				class:active={ballSize === 'large'}
+				on:click={() => changeBallSize('large')}
+				aria-label="大サイズ"
+			>
+				大
+			</button>
+		</div>
+	</div>
 	<div class="game-area">
 		<canvas bind:this={canvas} class="paint-canvas"></canvas>
-		<div class="ball" style="left: {ball.x}%; top: {ball.y}%; transform: translate(-50%, -50%);"></div>
+		<div
+			class="ball"
+			style="
+				left: {ball.x}%; 
+				top: {ball.y}%; 
+				transform: translate(-50%, -50%);
+				width: {BALL_SIZES[ballSize].radius * 2}px;
+				height: {BALL_SIZES[ballSize].radius * 2}px;
+			"
+		></div>
 	</div>
 </div>
 
@@ -176,14 +223,56 @@
 		font-weight: bold;
 	}
 
+	.controls {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.size-controls {
+		display: flex;
+		gap: 15px;
+	}
+
+	.size-controls button {
+		width: 60px;
+		height: 60px;
+		border-radius: 30px;
+		background: #ff9800;
+		color: white;
+		border: none;
+		cursor: pointer;
+		font-size: 18px;
+		font-weight: bold;
+		transition: all 0.3s ease;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+	}
+
+	.size-controls button:hover {
+		background: #f57c00;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.size-controls button.active {
+		background: #ef6c00;
+		transform: scale(1.1);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+	}
+
 	.ball {
-		width: 40px;
-		height: 40px;
 		background: #ff4444;
 		border-radius: 50%;
 		position: absolute;
-		transform: translate(-50%, -50%);
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		transition:
+			width 0.3s ease,
+			height 0.3s ease;
 	}
 
 	button {
