@@ -1,38 +1,55 @@
-# sv
+# Gyro Ball
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+ジャイロセンサーを使ってボールを転がすWebアプリケーションです。
 
-## Creating a project
+## 機能
 
-If you're seeing this, you've probably already done this step. Congrats!
+- デバイスの傾きに応じてボールが転がります
+- 摩擦による減速効果があり、自然な動きを実現
+- 画面の端でボールが跳ね返ります
+- レスポンシブデザインで様々な画面サイズに対応
+- iOSデバイスでのジャイロセンサー権限管理に対応
 
-```bash
-# create a new project in the current directory
-npx sv create
+## 技術スタック
 
-# create a new project in my-app
-npx sv create my-app
-```
+- TypeScript
+- SvelteKit
+- CSS3
 
-## Developing
+## 開発環境のセットアップ
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
+### リポジトリのクローン
 
 ```bash
-npm run build
+git clone https://github.com/your-username/gyro-ball.git
+cd gyro-ball
 ```
 
-You can preview the production build with `npm run preview`.
+### 依存関係のインストール
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+pnpm install
+```
+
+### 開発サーバーの起動
+
+```bash
+pnpm dev
+```
+
+### ブラウザでアクセス
+
+```text
+http://localhost:5173
+```
+
+## 動作確認
+
+- スマートフォンやタブレットでアクセスしてください
+- iOSデバイスの場合、最初にジャイロセンサーへのアクセス許可が必要です
+- デバイスを傾けることでボールが転がります
+
+## 注意事項
+
+- デバイスのジャイロセンサーが必要です
+- HTTPSでの実行が推奨されます（一部ブラウザではHTTPSが必須）
