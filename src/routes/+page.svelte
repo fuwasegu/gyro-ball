@@ -5,6 +5,7 @@
 	import Controls from '../components/Controls.svelte';
 	import Canvas from '../components/Canvas.svelte';
 	import Header from '../components/Header.svelte';
+	import PermissionModal from '../components/PermissionModal.svelte';
 	import { requestGyroscopePermission } from '../lib/gyroscope';
 	import { calculateVelocity, updatePosition } from '../lib/physics';
 	import type { BallSize, Position, Velocity } from '../types';
@@ -72,10 +73,6 @@
 <Header />
 
 <div class="container">
-	{#if !isPermissionGranted}
-		<button on:click={handlePermissionRequest}> ジャイロセンサーへのアクセスを許可する </button>
-	{/if}
-
 	<Controls
 		{paintedPercentage}
 		currentSize={ballSize}
@@ -94,6 +91,10 @@
 		<Ball position={ball} size={ballSize} />
 	</div>
 </div>
+
+{#if !isPermissionGranted}
+	<PermissionModal onRequestPermission={handlePermissionRequest} />
+{/if}
 
 <style>
 	.container {
@@ -117,21 +118,6 @@
 		position: relative;
 		background: #f0f0f0;
 		overflow: hidden;
-	}
-
-	button {
-		margin-bottom: 20px;
-		padding: 10px 20px;
-		font-size: 16px;
-		background: #4caf50;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-
-	button:hover {
-		background: #45a049;
 	}
 
 	@media (max-height: 600px) {
