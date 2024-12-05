@@ -11,7 +11,7 @@
 		width: 100%;
 		background: #4caf50;
 		color: white;
-		padding: 10px 0;
+		padding: 8px 0;
 		text-align: center;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		position: fixed;
@@ -22,17 +22,17 @@
 
 	h1 {
 		margin: 0;
-		font-size: 24px;
+		font-size: 20px;
 		font-weight: bold;
 	}
 
 	@media (max-height: 600px) {
 		header {
-			padding: 5px 0;
+			padding: 4px 0;
 		}
 
 		h1 {
-			font-size: 20px;
+			font-size: 18px;
 		}
 	}
 </style>

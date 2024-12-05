@@ -6,7 +6,8 @@ export const SENSITIVITY = 0.5;
 export const BALL_SIZES = {
 	small: { radius: 10, lineWidth: 20 },
 	medium: { radius: 20, lineWidth: 40 },
-	large: { radius: 35, lineWidth: 70 }
+	large: { radius: 35, lineWidth: 70 },
+	xlarge: { radius: 70, lineWidth: 140 }
 } as const;
 
 export function updatePosition(

@@ -5,6 +5,7 @@
 	export let currentSize: BallSize;
 	export let onSizeChange: (size: BallSize) => void;
 	export let onClear: () => void;
+	export let disabled = false;
 </script>
 
 <div class="controls">
@@ -15,6 +16,7 @@
 				class:active={currentSize === 'small'}
 				on:click={() => onSizeChange('small')}
 				aria-label="小サイズ"
+				{disabled}
 			>
 				小
 			</button>
@@ -22,6 +24,7 @@
 				class:active={currentSize === 'medium'}
 				on:click={() => onSizeChange('medium')}
 				aria-label="中サイズ"
+				{disabled}
 			>
 				中
 			</button>
@@ -29,11 +32,22 @@
 				class:active={currentSize === 'large'}
 				on:click={() => onSizeChange('large')}
 				aria-label="大サイズ"
+				{disabled}
 			>
 				大
 			</button>
+			<button
+				class:active={currentSize === 'xlarge'}
+				on:click={() => onSizeChange('xlarge')}
+				aria-label="特大サイズ"
+				{disabled}
+			>
+				特大
+			</button>
 		</div>
-		<button class="clear-button" on:click={onClear} aria-label="軌跡をリセット"> リセット </button>
+		<button class="clear-button" on:click={onClear} aria-label="軌跡をリセット" {disabled}>
+			リセット
+		</button>
 	</div>
 </div>
 
@@ -80,13 +94,20 @@
 		text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 	}
 
-	.size-controls button:hover {
+	.size-controls button:disabled {
+		background: #ccc;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
+
+	.size-controls button:not(:disabled):hover {
 		background: #f57c00;
 		transform: translateY(-2px);
 		box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 	}
 
-	.size-controls button.active {
+	.size-controls button.active:not(:disabled) {
 		background: #ef6c00;
 		transform: scale(1.1);
 		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
@@ -111,13 +132,20 @@
 		white-space: nowrap;
 	}
 
-	.clear-button:hover {
+	.clear-button:disabled {
+		background: #ccc;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
+
+	.clear-button:not(:disabled):hover {
 		background: #ff1744;
 		transform: translateY(-2px);
 		box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 	}
 
-	.clear-button:active {
+	.clear-button:not(:disabled):active {
 		transform: translateY(0);
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	}
@@ -144,6 +172,7 @@
 
 		.size-controls button {
 			width: 40px;
+			font-size: 14px;
 		}
 
 		.clear-button {
