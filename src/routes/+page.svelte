@@ -4,6 +4,7 @@
 	import Ball from '../components/Ball.svelte';
 	import Controls from '../components/Controls.svelte';
 	import Canvas from '../components/Canvas.svelte';
+	import Header from '../components/Header.svelte';
 	import { requestGyroscopePermission } from '../lib/gyroscope';
 	import { calculateVelocity, updatePosition } from '../lib/physics';
 	import type { BallSize, Position, Velocity } from '../types';
@@ -68,6 +69,8 @@
 	</style>
 </svelte:head>
 
+<Header />
+
 <div class="container">
 	{#if !isPermissionGranted}
 		<button on:click={handlePermissionRequest}> ジャイロセンサーへのアクセスを許可する </button>
@@ -102,6 +105,7 @@
 		align-items: center;
 		gap: 10px;
 		padding: 10px;
+		padding-top: 60px;
 		box-sizing: border-box;
 	}
 
@@ -134,6 +138,7 @@
 		.container {
 			gap: 5px;
 			padding: 5px;
+			padding-top: 40px;
 		}
 
 		.game-area {
