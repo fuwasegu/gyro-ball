@@ -111,6 +111,14 @@
 		drawLine();
 	};
 
+	const clearCanvas = () => {
+		if (!ctx) return;
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		paintedPercentage = 0;
+		lastX = (ball.x / 100) * canvas.width;
+		lastY = (ball.y / 100) * canvas.height;
+	};
+
 	onMount(() => {
 		if (browser) {
 			window.addEventListener('resize', initCanvas);
@@ -145,27 +153,32 @@
 	{/if}
 	<div class="controls">
 		<div class="progress">塗られた面積: {paintedPercentage}%</div>
-		<div class="size-controls">
-			<button
-				class:active={ballSize === 'small'}
-				on:click={() => changeBallSize('small')}
-				aria-label="小サイズ"
-			>
-				小
-			</button>
-			<button
-				class:active={ballSize === 'medium'}
-				on:click={() => changeBallSize('medium')}
-				aria-label="中イズ"
-			>
-				中
-			</button>
-			<button
-				class:active={ballSize === 'large'}
-				on:click={() => changeBallSize('large')}
-				aria-label="大サイズ"
-			>
-				大
+		<div class="control-buttons">
+			<div class="size-controls">
+				<button
+					class:active={ballSize === 'small'}
+					on:click={() => changeBallSize('small')}
+					aria-label="小サイズ"
+				>
+					小
+				</button>
+				<button
+					class:active={ballSize === 'medium'}
+					on:click={() => changeBallSize('medium')}
+					aria-label="中サイズ"
+				>
+					中
+				</button>
+				<button
+					class:active={ballSize === 'large'}
+					on:click={() => changeBallSize('large')}
+					aria-label="大サイズ"
+				>
+					大
+				</button>
+			</div>
+			<button class="clear-button" on:click={clearCanvas} aria-label="軌跡をリセット">
+				リセット
 			</button>
 		</div>
 	</div>
@@ -192,64 +205,50 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		gap: 20px;
-	}
-
-	.game-area {
-		width: 90vmin;
-		height: 90vmin;
-		border: 2px solid #333;
-		border-radius: 8px;
-		position: relative;
-		background: #f0f0f0;
-		overflow: hidden;
-	}
-
-	.paint-canvas {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-	}
-
-	.progress {
-		background: #333;
-		color: white;
-		padding: 8px 16px;
-		border-radius: 20px;
-		font-size: 16px;
-		font-weight: bold;
+		gap: 10px;
+		padding: 10px;
+		box-sizing: border-box;
 	}
 
 	.controls {
+		width: 100%;
+		max-width: 90vmin;
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
 		align-items: center;
 	}
 
+	.control-buttons {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		gap: 10px;
+		padding: 0 10px;
+	}
+
 	.size-controls {
 		display: flex;
-		gap: 15px;
+		gap: 8px;
 	}
 
 	.size-controls button {
-		width: 60px;
-		height: 60px;
-		border-radius: 30px;
+		width: 45px;
+		height: 45px;
+		border-radius: 50%;
 		background: #ff9800;
 		color: white;
 		border: none;
 		cursor: pointer;
-		font-size: 18px;
+		font-size: 16px;
 		font-weight: bold;
 		transition: all 0.3s ease;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 	}
 
@@ -288,5 +287,98 @@
 
 	button:hover {
 		background: #45a049;
+	}
+
+	.clear-button {
+		width: 90px;
+		height: 45px;
+		border-radius: 22.5px;
+		background: #ff5252;
+		color: white;
+		border: none;
+		cursor: pointer;
+		font-size: 16px;
+		font-weight: bold;
+		transition: all 0.3s ease;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+		white-space: nowrap;
+	}
+
+	.clear-button:hover {
+		background: #ff1744;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.clear-button:active {
+		transform: translateY(0);
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+
+	.progress {
+		background: #333;
+		color: white;
+		padding: 8px 16px;
+		border-radius: 20px;
+		font-size: 14px;
+		font-weight: bold;
+		white-space: nowrap;
+	}
+
+	.game-area {
+		width: 90vmin;
+		height: 90vmin;
+		border: 2px solid #333;
+		border-radius: 8px;
+		position: relative;
+		background: #f0f0f0;
+		overflow: hidden;
+	}
+
+	.paint-canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	@media (max-height: 600px) {
+		.container {
+			gap: 5px;
+			padding: 5px;
+		}
+
+		.controls {
+			gap: 5px;
+		}
+
+		.size-controls button,
+		.clear-button {
+			height: 40px;
+		}
+
+		.size-controls button {
+			width: 40px;
+		}
+
+		.clear-button {
+			width: 80px;
+		}
+
+		.progress {
+			padding: 6px 12px;
+			font-size: 12px;
+		}
+
+		.game-area {
+			width: 85vmin;
+			height: 85vmin;
+		}
 	}
 </style>
