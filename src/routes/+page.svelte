@@ -121,6 +121,7 @@
 			touch-action: none;
 		}
 	</style>
+	<title>ボール転がし</title>
 </svelte:head>
 
 <Header />
